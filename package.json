@@ -1,0 +1,21 @@
+{
+  "name": "hapi-notes-6",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.2",
+    "boom": "^7.3.0",
+    "hapi": "^17.8.1",
+    "hapi-auth-basic": "^5.0.0",
+    "hoek": "^6.1.2",
+    "inert": "^5.1.2"
+  }
+}
