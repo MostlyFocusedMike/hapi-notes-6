@@ -82,13 +82,21 @@ internals.implementation = function (server, options) {
             /*
                 this is for authenticating the PAYLOAD,
                 it only runs when the options property
-                'payload' is set to true
+                'payload' is set to true and you have
+                a payload (so this never runs on GET
+                requests)
                 NOTE: this is not payload VALIDATION,
                 that is handled with joi, this is just
                 if you want to authenticate the payload
                 data
             */
             console.log('hello from the payload authentication');
+            return h.continue;
+        },
+        response: (request, h) => {
+            request.response.headers.test = "value"
+            console.log('hello from request:', request.response.headers);
+            // request.response.headers('test', 'works')
             return h.continue;
         },
         options: {

@@ -98,8 +98,15 @@ const start = async () => {
             }
         },
     });
+
+    // https://freecontent.manning.com/hapi-js-in-action-diagram/
+
     server.ext('onPreAuth', (request, h) => {
-        console.log('hi')
+        console.log('hi from preAuth')
+        return h.continue
+    });
+    server.ext('onPostAuth', (request, h) => {
+        console.log('hi from postAuth')
         return h.continue
     });
 
