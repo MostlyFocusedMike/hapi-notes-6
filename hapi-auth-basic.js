@@ -1,8 +1,7 @@
 /*
     Here is the actual code from hapi-auth-basic
     this file is only here for ease of reading,
-    our project is pulling from NPM, not this
-    file here
+    our project is pulling from NPM, not this file
 */
 
 'use strict';

@@ -1,5 +1,5 @@
 const Boom = require('boom');
-/* hoek is a  */
+/* hoek is a node utitlities library catered to Hapi needs */
 const Hoek = require('hoek');
 
 
@@ -19,14 +19,26 @@ exports.plugin = {
 
 
 internals.implementation = function (server, options) {
-
+    
+    /* validate that options are right before doing anything */
     Hoek.assert(options, 'Missing basic auth strategy options');
     Hoek.assert(typeof options.validate === 'function', 'options.validate must be a valid function in basic scheme');
-
+    
+    /* make a clone of options */
     const settings = Hoek.clone(options);
 
     const scheme = {
         authenticate: async function (request, h) {
+            /* 
+                This is the only required method for a scheme
+                it does the actual authentication work
+                it returns h.authenticated({credentials, artifacts}),
+                where credientials is the user data, and artifacts is
+                any data that doesn't have to do with the user but does
+                for auth (it's optional)
+                HOWEVER, on failed auth, return h.unauthenticated(error, [data])
+                where data is {credentials, artifcats} now
+            */
 
             const authorization = request.headers.authorization;
 
@@ -93,10 +105,14 @@ internals.implementation = function (server, options) {
             console.log('hello from the payload authentication');
             return h.continue;
         },
-        response: (request, h) => {
-            request.response.headers.test = "value"
+        response: async function (request, h) {
+            /* 
+                this runs right before a response is sent
+                back to the user, it is used for decorating 
+                the response with headers
+            */
+            request.response.headers.test = "new-header"
             console.log('hello from request:', request.response.headers);
-            // request.response.headers('test', 'works')
             return h.continue;
         },
         options: {

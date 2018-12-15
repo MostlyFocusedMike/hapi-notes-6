@@ -7,11 +7,12 @@ const server = new Hapi.server({
 });
 
 
-/* This is our dummy database */
+/* This is our dummy DB */
 const users = {
     john: {
         username: 'john',
-        password: '$2a$10$iqJSHD.BGr0E2IxQwYgJmeP3NvhPrXAeLSaGCj6IR/XU5QtjVu5Tm',   // 'secret'
+        /* decodes to 'secret' */
+        password: '$2a$10$iqJSHD.BGr0E2IxQwYgJmeP3NvhPrXAeLSaGCj6IR/XU5QtjVu5Tm',
         name: 'John Doe',
         id: '2133d32a'
     }
@@ -37,7 +38,7 @@ const validate = async (request, username, password, h) => {
     }
 
     /* see how we are unauthenticated at this point */
-    console.log('response toolkit:', h.request.auth );
+    console.log('we are not yet authenticated in the validate function', h.request.auth );
 
     const isValid = await Bcrypt.compare(password, user.password);
     const credentials = { id: user.id, name: user.name };
@@ -55,12 +56,17 @@ const start = async () => {
                        /* strategy, scheme, options */
     server.auth.strategy('simple', 'basic', { validate });
     server.auth.strategy('simplePlus', 'basicPlus', { validate });
-
+    /* you can set a default auth strategy */
+    server.auth.default('simplePlus');
+    
     server.route({
         method: 'GET',
         path: '/',
         options: {
-            /* here is where we say which strategy */
+            /* 
+                here is where we say which strategy 
+                it will override the simplePlus default
+            */
             auth: 'simple',
             handler: function (request, h) {
                 return {
@@ -72,14 +78,35 @@ const start = async () => {
 
     server.route({
         method: 'GET',
+        path: '/no-auth',
+        options: {
+            /* 
+                here is where we say no auth strategy
+                it will override the simplePlus default
+            */
+            auth: false,
+            handler: function (request, h) {
+                return {
+                    title: 'All the auth data is empty now',
+                    stuff: h.request.auth};
+            }
+        },
+    });
+
+    server.route({
+        method: 'GET',
         path: '/plus',
         options: {
-            /* here is where we say which strategy */
-            auth: 'simplePlus',
+            /*
+                here is how we can use multiple strategies 
+            */
+            auth: {
+                strategies: ['simplePlus', 'simple']
+            },
             handler: function (request, h) {
                 return {
                     title: 'All auth data from h.request.auth',
-                    stuff: h.request.auth};
+                    hRequestAuthStuff: h.request.auth};
             }
         },
     });
@@ -88,28 +115,34 @@ const start = async () => {
         method: 'POST',
         path: '/plus',
         options: {
-            /* here is where we say which strategy */
-            auth: 'simplePlus',
+            /* 
+                Notice no auth is given, but because of our default 
+                it will still run simplePlus
+            */
             handler: function (request, h) {
-                console.log('request.payload:', request.payload);
+                console.log("Hello from the POST route handler: ", request.payload)
                 return {
-                    title: 'All auth data from h.request.auth',
-                    stuff: h.request.auth};
+                    title: 'All auth data from h.request.auth, including the artifacts now',
+                    hRequestAuthStuff: h.request.auth};
             }
         },
     });
 
-    // https://freecontent.manning.com/hapi-js-in-action-diagram/
+    /* 
+        These are lifecycle methods, we will talk more about them
+        later, but for now just use them to see at what point 
+        things get run with auth
+        https://freecontent.manning.com/hapi-js-in-action-diagram/ 
+    */
 
     server.ext('onPreAuth', (request, h) => {
-        console.log('hi from preAuth')
+        console.log('hello from preAuth')
         return h.continue
     });
     server.ext('onPostAuth', (request, h) => {
-        console.log('hi from postAuth')
+        console.log('hello from postAuth')
         return h.continue
     });
-
     await server.start();
 
     console.log('server running at: ' + server.info.uri);
